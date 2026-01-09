@@ -8,6 +8,7 @@
 import os
 
 from flask import Flask
+from flask.json.provider import DefaultJSONProvider
 from flask_migrate import Migrate
 
 from config import Config
@@ -17,8 +18,21 @@ from pkg.response import json, Response, HttpCode
 from pkg.sqlalchemy import SQLAlchemy
 
 
+class JSONProvider(DefaultJSONProvider):
+    """自定义JSON解析器，支持pydantic模型"""
+    def default(self, o):
+        print(f"DEBUG: serializing type {type(o)}")
+        if hasattr(o, "model_dump") and callable(o.model_dump):
+            return o.model_dump()
+        if hasattr(o, "dict") and callable(o.dict):
+            return o.dict()
+        return super().default(o)
+
+
 class Http(Flask):
     """Http服务引擎"""
+
+    json_provider_class = JSONProvider
 
     def __init__(
             self,
