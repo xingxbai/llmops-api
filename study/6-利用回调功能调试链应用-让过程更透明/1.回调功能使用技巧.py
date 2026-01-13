@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
+
 """
 @Time    : 2024/6/01 19:53
 @Author  : thezehui@gmail.com
@@ -17,6 +17,7 @@ from langchain_core.outputs import LLMResult
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
 
 dotenv.load_dotenv()
 
@@ -58,7 +59,8 @@ class LLMOpsCallbackHandler(BaseCallbackHandler):
 prompt = ChatPromptTemplate.from_template("{query}")
 
 # 2.创建大语言模型
-llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
+llm = ChatOllama(base_url="http://127.0.0.1:11434", model="llama3")
+
 
 # 3.构建链
 chain = {"query": RunnablePassthrough()} | prompt | llm | StrOutputParser()
@@ -66,8 +68,8 @@ chain = {"query": RunnablePassthrough()} | prompt | llm | StrOutputParser()
 # 4.调用链并执行
 resp = chain.stream(
     "你好，你是？",
-    config={"callbacks": [StdOutCallbackHandler(), LLMOpsCallbackHandler()]}
+    config={"callbacks": [LLMOpsCallbackHandler()]}
 )
 
 for chunk in resp:
-    pass
+    print(chunk, end="", flush=True)
